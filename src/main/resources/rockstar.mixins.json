@@ -89,7 +89,8 @@
     "minecraft.render.item.ItemRenderStateMixin",
     "minecraft.world.ClientWorldMixin",
     "sodium.LevelSliceMixin",
-    "sodium.RenderSectionManagerMixin"
+    "sodium.RenderSectionManagerMixin",
+    "FramebufferSafetyMixin"
   ],
   "mixins": [
     "accessors.BiomeAccesAccessor",
