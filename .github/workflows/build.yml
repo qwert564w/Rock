@@ -33,8 +33,12 @@ jobs:
       id: version
       run: |
         VERSION=$(grep '^mod_version=' gradle.properties | cut -d'=' -f2)
+        BUILD_NUM=${{ github.run_number }}
+        TAG_VERSION="${VERSION}-build${BUILD_NUM}"
         echo "version=$VERSION" >> $GITHUB_OUTPUT
+        echo "tag_version=$TAG_VERSION" >> $GITHUB_OUTPUT
         echo "Version: $VERSION"
+        echo "Tag: $TAG_VERSION"
         
     - name: Create Release
       id: create_release
@@ -42,10 +46,15 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       with:
-        tag_name: v${{ steps.version.outputs.version }}
-        release_name: Rockstar Client v${{ steps.version.outputs.version }}
+        tag_name: v${{ steps.version.outputs.tag_version }}
+        release_name: Rockstar Client v${{ steps.version.outputs.tag_version }}
         body: |
           Автоматическая сборка Rockstar Client для Minecraft 1.21.11
+          
+          **Оптимизации для слабых ПК:**
+          - Автоматическое определение GPU
+          - Framebuffer safety checks
+          - Отключение тяжелых эффектов на интегрированной графике
           
           **Требования:**
           - Minecraft 1.21.11
@@ -62,5 +71,5 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: build/libs/rockstar-client-sunshine-project-${{ steps.version.outputs.version }}.jar
-        asset_name: rockstar-client-${{ steps.version.outputs.version }}.jar
+        asset_name: rockstar-client-${{ steps.version.outputs.tag_version }}.jar
         asset_content_type: application/java-archive
