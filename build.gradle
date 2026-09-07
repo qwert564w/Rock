@@ -16,6 +16,12 @@ repositories {
 }
 
 dependencies {
+    // JavaFX dependencies (required for auth)
+implementation 'org.openjfx:javafx-base:21.0.2:win'
+    implementation 'org.openjfx:javafx-graphics:21.0.2:win'
+    implementation 'org.openjfx:javafx-controls:21.0.2:win'
+    implementation 'org.openjfx:javafx-swing:21.0.2:win'
+    implementation 'org.openjfx:javafx-web:21.0.2:win'
     // JavaFX dependencies removed for low-end PC compatibility
     // These were causing crashes and high memory usage on integrated graphics
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
