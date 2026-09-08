@@ -17,13 +17,12 @@ repositories {
 
 dependencies {
     // JavaFX dependencies (required for auth)
-implementation 'org.openjfx:javafx-base:21.0.2:win'
+    implementation 'org.openjfx:javafx-base:21.0.2:win'
     implementation 'org.openjfx:javafx-graphics:21.0.2:win'
     implementation 'org.openjfx:javafx-controls:21.0.2:win'
     implementation 'org.openjfx:javafx-swing:21.0.2:win'
     implementation 'org.openjfx:javafx-web:21.0.2:win'
-    // JavaFX dependencies removed for low-end PC compatibility
-    // These were causing crashes and high memory usage on integrated graphics
+    
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
     mappings "net.fabricmc:yarn:${project.yarn_mappings}:v2"
     modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
@@ -40,12 +39,13 @@ implementation 'org.openjfx:javafx-base:21.0.2:win'
     implementation 'org.nanohttpd:nanohttpd:2.3.1'
     compileOnly 'io.netty:netty-codec-http:4.1.115.Final'
     implementation 'io.projectreactor.netty:reactor-netty-http:1.1.25'
+    
+    // OkHttp and Okio bundled into the mod jar
     implementation 'com.squareup.okhttp3:okhttp:4.12.0'
+    include 'com.squareup.okhttp3:okhttp:4.12.0'
+    include 'com.squareup.okio:okio-jvm:3.6.0'
 
     // Also expose the original jar-in-jar libraries to Loom's development runtime.
-    // The FunTimeEvents SDK calls Minecraft directly and therefore has to pass
-    // through Loom's intermediary -> named remapper for runClient. The remaining
-    // libraries do not reference Minecraft and can stay as ordinary dependencies.
     implementation fileTree(
         dir: 'src/main/resources/META-INF/jars',
         include: ['*.jar'],
