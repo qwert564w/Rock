@@ -14,9 +14,9 @@ public class FramebufferSafetyMixin {
     private static final Logger LOGGER = LoggerFactory.getLogger("FramebufferSafety");
 
     @Inject(method = "<init>", at = @At("TAIL"))
-    private void onFramebufferInit(int width, int height, boolean useDepth, boolean getError, CallbackInfo ci) {
+    private void onFramebufferInit(String name, boolean useDepthAttachment, CallbackInfo ci) {
         if (LowEndPCDetector.isLowEndPC()) {
-            LOGGER.debug("Framebuffer created on low-end PC: {}x{}, depth={}", width, height, useDepth);
+            LOGGER.debug("Framebuffer created on low-end PC: name={}, depth={}", name, useDepthAttachment);
         }
     }
 }
