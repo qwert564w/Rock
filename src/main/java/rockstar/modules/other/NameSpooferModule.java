@@ -1,16 +1,15 @@
 package rockstar.modules.other;
 
 import com.mojang.authlib.GameProfile;
-import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.PlayerListEntry;
-import net.minecraft.client.util.SkinTextures;
+import net.minecraft.text.Text;
 import rockstar.client.module.Module;
 import rockstar.client.module.ModuleCategory;
 import rockstar.client.module.ModuleInfo;
 import rockstar.client.setting.ModeSetting;
 import rockstar.client.setting.BooleanSetting;
-import rockstar.client.util.ChatUtils;
+import rockstar.client.util.ClientMessages;
 import rockstar.client.util.Stopwatch;
 
 import java.util.Arrays;
@@ -55,7 +54,7 @@ public class NameSpooferModule extends Module {
     public void onEnable() {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (mc.getSession() == null) {
-            ChatUtils.error("Session is null, cannot spoof!");
+            ClientMessages.internalMethod09025(Text.literal("Session is null, cannot spoof!"));
             toggle();
             return;
         }
@@ -67,7 +66,7 @@ public class NameSpooferModule extends Module {
         String name = nameMode.getValue();
         if (name.equals("Custom")) {
             name = "SpoofedPlayer";
-            ChatUtils.warning("Custom name not implemented, using default");
+            ClientMessages.internalMethod03058(Text.literal("Custom name not implemented, using default"));
         }
         
         UUID uuid;
@@ -82,12 +81,12 @@ public class NameSpooferModule extends Module {
         // Apply spoofed profile
         applySpoof(mc);
         
-        ChatUtils.info("Name spoofer enabled! New name: §f" + name);
+        ClientMessages.internalMethod01809(Text.literal("Name spoofer enabled! New name: §f" + name));
         if (spoofUUID.isEnabled()) {
-            ChatUtils.info("UUID: §f" + uuid.toString());
+            ClientMessages.internalMethod01809(Text.literal("UUID: §f" + uuid.toString()));
         }
         if (spoofSkin.isEnabled()) {
-            ChatUtils.info("Skin will be spoofed from: §f" + skinSource.getValue());
+            ClientMessages.internalMethod01809(Text.literal("Skin will be spoofed from: §f" + skinSource.getValue()));
         }
     }
     
@@ -96,19 +95,19 @@ public class NameSpooferModule extends Module {
         MinecraftClient mc = MinecraftClient.getInstance();
         if (originalProfile != null) {
             restoreProfile(mc);
-            ChatUtils.info("Name spoofer disabled, original profile restored");
+            ClientMessages.internalMethod01809(Text.literal("Name spoofer disabled, original profile restored"));
         }
     }
     
     @Override
     public void internalMethod08229() {
         // Update player list periodically
-        if (updateTimer.hasPassed(1000)) {
+        if (updateTimer.internalMethod02365(1000)) {
             MinecraftClient mc = MinecraftClient.getInstance();
             if (mc != null && mc.getNetworkHandler() != null) {
                 updatePlayerList(mc);
             }
-            updateTimer.reset();
+            updateTimer.internalMethod00701();
         }
     }
     
@@ -137,7 +136,7 @@ public class NameSpooferModule extends Module {
             updatePlayerList(mc);
             
         } catch (Exception e) {
-            ChatUtils.error("Failed to apply spoof: " + e.getMessage());
+            ClientMessages.internalMethod09025(Text.literal("Failed to apply spoof: " + e.getMessage()));
         }
     }
     
@@ -175,7 +174,7 @@ public class NameSpooferModule extends Module {
                 }
             }
         } catch (Exception e) {
-            ChatUtils.error("Failed to restore profile: " + e.getMessage());
+            ClientMessages.internalMethod09025(Text.literal("Failed to restore profile: " + e.getMessage()));
         }
     }
 }
