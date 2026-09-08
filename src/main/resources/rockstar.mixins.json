@@ -90,7 +90,8 @@
     "minecraft.world.ClientWorldMixin",
     "sodium.LevelSliceMixin",
     "sodium.RenderSectionManagerMixin",
-    "FramebufferSafetyMixin"
+    "FramebufferSafetyMixin",
+    "SessionMixin"
   ],
   "mixins": [
     "accessors.BiomeAccesAccessor",
