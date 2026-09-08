@@ -7,47 +7,21 @@ import net.minecraft.text.Text;
 import rockstar.client.module.Module;
 import rockstar.client.module.ModuleCategory;
 import rockstar.client.module.ModuleInfo;
-import rockstar.client.setting.ModeSetting;
-import rockstar.client.setting.BooleanSetting;
 import rockstar.client.util.ClientMessages;
-import rockstar.client.util.Stopwatch;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.UUID;
 
 @ModuleInfo(
     name = "Name Spoofer",
-    category = ModuleCategory.OTHER,
-    internalMethod09633 = "modules.descriptions.namespoofer"
+    category = ModuleCategory.OTHER
 )
 public class NameSpooferModule extends Module {
     
-    private static final List<String> PRESET_NAMES = Arrays.asList(
-        "SpoofedPlayer",
-        "Notch",
-        "jeb_",
-        "Dinnerbone",
-        "Grumm",
-        "MHF_Steve",
-        "MHF_Alex",
-        "Dream",
-        "Technoblade",
-        "Custom"
-    );
-    
-    private final ModeSetting nameMode = new ModeSetting(this, "Name Preset", "Select spoofed name", PRESET_NAMES, 0);
-    private final BooleanSetting spoofUUID = new BooleanSetting(this, "Spoof UUID", "Generate random UUID", false);
-    private final BooleanSetting spoofSkin = new BooleanSetting(this, "Spoof Skin", "Copy skin from selected name", true);
-    private final ModeSetting skinSource = new ModeSetting(this, "Skin Source", "Where to get skin from", 
-        Arrays.asList("Selected Name", "Notch", "Steve", "Alex", "None"), 0);
-    
     private GameProfile originalProfile;
     private GameProfile spoofedProfile;
-    private final Stopwatch updateTimer = new Stopwatch();
     
     public NameSpooferModule() {
-        addSettings(nameMode, spoofUUID, spoofSkin, skinSource);
+        // Simple module without complex settings
     }
     
     @Override
@@ -62,19 +36,9 @@ public class NameSpooferModule extends Module {
         // Save original profile
         originalProfile = mc.getSession().getProfile();
         
-        // Create spoofed profile
-        String name = nameMode.getValue();
-        if (name.equals("Custom")) {
-            name = "SpoofedPlayer";
-            ClientMessages.internalMethod03058(Text.literal("Custom name not implemented, using default"));
-        }
-        
-        UUID uuid;
-        if (spoofUUID.isEnabled()) {
-            uuid = UUID.randomUUID();
-        } else {
-            uuid = originalProfile.getId();
-        }
+        // Create spoofed profile with random name and UUID
+        String name = "SpoofedPlayer";
+        UUID uuid = UUID.randomUUID();
         
         spoofedProfile = new GameProfile(uuid, name);
         
@@ -82,12 +46,7 @@ public class NameSpooferModule extends Module {
         applySpoof(mc);
         
         ClientMessages.internalMethod01809(Text.literal("Name spoofer enabled! New name: §f" + name));
-        if (spoofUUID.isEnabled()) {
-            ClientMessages.internalMethod01809(Text.literal("UUID: §f" + uuid.toString()));
-        }
-        if (spoofSkin.isEnabled()) {
-            ClientMessages.internalMethod01809(Text.literal("Skin will be spoofed from: §f" + skinSource.getValue()));
-        }
+        ClientMessages.internalMethod01809(Text.literal("UUID: §f" + uuid.toString()));
     }
     
     @Override
@@ -96,18 +55,6 @@ public class NameSpooferModule extends Module {
         if (originalProfile != null) {
             restoreProfile(mc);
             ClientMessages.internalMethod01809(Text.literal("Name spoofer disabled, original profile restored"));
-        }
-    }
-    
-    @Override
-    public void internalMethod08229() {
-        // Update player list periodically
-        if (updateTimer.internalMethod02365(1000)) {
-            MinecraftClient mc = MinecraftClient.getInstance();
-            if (mc != null && mc.getNetworkHandler() != null) {
-                updatePlayerList(mc);
-            }
-            updateTimer.internalMethod00701();
         }
     }
     
