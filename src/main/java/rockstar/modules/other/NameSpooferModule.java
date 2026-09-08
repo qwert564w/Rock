@@ -1,8 +1,10 @@
 package rockstar.modules.other;
 
 import com.mojang.authlib.GameProfile;
+import com.mojang.authlib.minecraft.MinecraftProfileTexture;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.PlayerListEntry;
+import net.minecraft.client.util.SkinTextures;
 import rockstar.client.module.Module;
 import rockstar.client.module.ModuleCategory;
 import rockstar.client.module.ModuleInfo;
@@ -30,19 +32,23 @@ public class NameSpooferModule extends Module {
         "Grumm",
         "MHF_Steve",
         "MHF_Alex",
+        "Dream",
+        "Technoblade",
         "Custom"
     );
     
     private final ModeSetting nameMode = new ModeSetting(this, "Name Preset", "Select spoofed name", PRESET_NAMES, 0);
     private final BooleanSetting spoofUUID = new BooleanSetting(this, "Spoof UUID", "Generate random UUID", false);
     private final BooleanSetting spoofSkin = new BooleanSetting(this, "Spoof Skin", "Copy skin from selected name", true);
+    private final ModeSetting skinSource = new ModeSetting(this, "Skin Source", "Where to get skin from", 
+        Arrays.asList("Selected Name", "Notch", "Steve", "Alex", "None"), 0);
     
     private GameProfile originalProfile;
     private GameProfile spoofedProfile;
     private final Stopwatch updateTimer = new Stopwatch();
     
     public NameSpooferModule() {
-        addSettings(nameMode, spoofUUID, spoofSkin);
+        addSettings(nameMode, spoofUUID, spoofSkin, skinSource);
     }
     
     @Override
@@ -60,7 +66,7 @@ public class NameSpooferModule extends Module {
         // Create spoofed profile
         String name = nameMode.getValue();
         if (name.equals("Custom")) {
-            name = "SpoofedPlayer"; // Default fallback
+            name = "SpoofedPlayer";
             ChatUtils.warning("Custom name not implemented, using default");
         }
         
@@ -79,6 +85,9 @@ public class NameSpooferModule extends Module {
         ChatUtils.info("Name spoofer enabled! New name: §f" + name);
         if (spoofUUID.isEnabled()) {
             ChatUtils.info("UUID: §f" + uuid.toString());
+        }
+        if (spoofSkin.isEnabled()) {
+            ChatUtils.info("Skin will be spoofed from: §f" + skinSource.getValue());
         }
     }
     
@@ -101,6 +110,20 @@ public class NameSpooferModule extends Module {
             }
             updateTimer.reset();
         }
+    }
+    
+    /**
+     * Get spoofed profile for use by Mixins
+     */
+    public GameProfile getSpoofedProfile() {
+        return spoofedProfile;
+    }
+    
+    /**
+     * Get original profile for restoration
+     */
+    public GameProfile getOriginalProfile() {
+        return originalProfile;
     }
     
     private void applySpoof(MinecraftClient mc) {
