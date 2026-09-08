@@ -6,28 +6,43 @@ import net.minecraft.client.network.PlayerListEntry;
 import rockstar.client.module.Module;
 import rockstar.client.module.ModuleCategory;
 import rockstar.client.module.ModuleInfo;
-import rockstar.client.setting.Setting;
-import rockstar.client.setting.TextSetting;
+import rockstar.client.setting.ModeSetting;
+import rockstar.client.setting.BooleanSetting;
 import rockstar.client.util.ChatUtils;
+import rockstar.client.util.Stopwatch;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.UUID;
 
 @ModuleInfo(
     name = "Name Spoofer",
     category = ModuleCategory.OTHER,
-    description = "Spoof your name, UUID and skin"
+    internalMethod09633 = "modules.descriptions.namespoofer"
 )
 public class NameSpooferModule extends Module {
     
-    private final TextSetting spoofedName = new TextSetting("Name", "Your new name", "SpoofedPlayer");
-    private final TextSetting spoofedUUID = new TextSetting("UUID", "Custom UUID (leave empty for random)", "");
-    private final TextSetting spoofedSkin = new TextSetting("Skin", "Skin username (e.g. Notch)", "");
+    private static final List<String> PRESET_NAMES = Arrays.asList(
+        "SpoofedPlayer",
+        "Notch",
+        "jeb_",
+        "Dinnerbone",
+        "Grumm",
+        "MHF_Steve",
+        "MHF_Alex",
+        "Custom"
+    );
+    
+    private final ModeSetting nameMode = new ModeSetting(this, "Name Preset", "Select spoofed name", PRESET_NAMES, 0);
+    private final BooleanSetting spoofUUID = new BooleanSetting(this, "Spoof UUID", "Generate random UUID", false);
+    private final BooleanSetting spoofSkin = new BooleanSetting(this, "Spoof Skin", "Copy skin from selected name", true);
     
     private GameProfile originalProfile;
     private GameProfile spoofedProfile;
+    private final Stopwatch updateTimer = new Stopwatch();
     
     public NameSpooferModule() {
-        addSettings(spoofedName, spoofedUUID, spoofedSkin);
+        addSettings(nameMode, spoofUUID, spoofSkin);
     }
     
     @Override
@@ -43,26 +58,28 @@ public class NameSpooferModule extends Module {
         originalProfile = mc.getSession().getProfile();
         
         // Create spoofed profile
-        String name = spoofedName.getValue();
-        UUID uuid;
+        String name = nameMode.getValue();
+        if (name.equals("Custom")) {
+            name = "SpoofedPlayer"; // Default fallback
+            ChatUtils.warning("Custom name not implemented, using default");
+        }
         
-        try {
-            if (!spoofedUUID.getValue().isEmpty()) {
-                uuid = UUID.fromString(spoofedUUID.getValue());
-            } else {
-                uuid = UUID.randomUUID();
-            }
-        } catch (IllegalArgumentException e) {
-            ChatUtils.error("Invalid UUID format, using random UUID");
+        UUID uuid;
+        if (spoofUUID.isEnabled()) {
             uuid = UUID.randomUUID();
+        } else {
+            uuid = originalProfile.getId();
         }
         
         spoofedProfile = new GameProfile(uuid, name);
         
-        // Apply spoofofed profile
+        // Apply spoofed profile
         applySpoof(mc);
         
-        ChatUtils.info("Name spoofer enabled! New name: " + name);
+        ChatUtils.info("Name spoofer enabled! New name: §f" + name);
+        if (spoofUUID.isEnabled()) {
+            ChatUtils.info("UUID: §f" + uuid.toString());
+        }
     }
     
     @Override
@@ -74,6 +91,18 @@ public class NameSpooferModule extends Module {
         }
     }
     
+    @Override
+    public void internalMethod08229() {
+        // Update player list periodically
+        if (updateTimer.hasPassed(1000)) {
+            MinecraftClient mc = MinecraftClient.getInstance();
+            if (mc != null && mc.getNetworkHandler() != null) {
+                updatePlayerList(mc);
+            }
+            updateTimer.reset();
+        }
+    }
+    
     private void applySpoof(MinecraftClient mc) {
         try {
             // Use reflection to modify session
@@ -82,18 +111,27 @@ public class NameSpooferModule extends Module {
             profileField.set(mc.getSession(), spoofedProfile);
             
             // Update player list entries
-            if (mc.getNetworkHandler() != null) {
-                for (PlayerListEntry entry : mc.getNetworkHandler().getPlayerList()) {
-                    if (entry.getProfile().getId().equals(originalProfile.getId())) {
-                        // Update player list entry
-                        java.lang.reflect.Field entryProfileField = entry.getClass().getDeclaredField("profile");
-                        entryProfileField.setAccessible(true);
-                        entryProfileField.set(entry, spoofedProfile);
-                    }
+            updatePlayerList(mc);
+            
+        } catch (Exception e) {
+            ChatUtils.error("Failed to apply spoof: " + e.getMessage());
+        }
+    }
+    
+    private void updatePlayerList(MinecraftClient mc) {
+        if (mc.getNetworkHandler() == null) return;
+        
+        try {
+            for (PlayerListEntry entry : mc.getNetworkHandler().getPlayerList()) {
+                if (entry.getProfile().getId().equals(originalProfile.getId())) {
+                    // Update player list entry
+                    java.lang.reflect.Field entryProfileField = entry.getClass().getDeclaredField("profile");
+                    entryProfileField.setAccessible(true);
+                    entryProfileField.set(entry, spoofedProfile);
                 }
             }
         } catch (Exception e) {
-            ChatUtils.error("Failed to apply spoof: " + e.getMessage());
+            // Silently fail on update errors
         }
     }
     
