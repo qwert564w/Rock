@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Утилита для безопасной проверки возможностей системы без вызова OpenGL до инициализации контекста.
+ * Utility for safe system capability checks without invoking OpenGL before context initialization.
  */
 public class LowEndPCDetector {
     private static final Logger LOGGER = LoggerFactory.getLogger("LowEndPCDetector");
@@ -20,19 +20,19 @@ public class LowEndPCDetector {
 
     private static void detectCapabilities() {
         try {
-            // Безопасная проверка через системные свойства Java, без вызова GL11 (что вызывает краш при инициализации)
+            // Safe check via Java system properties, avoiding GL11 calls which cause native crashes during init
             String osArch = System.getProperty("os.arch", "unknown");
             long maxMemory = Runtime.getRuntime().maxMemory() / (1024 * 1024); // MB
             
             LOGGER.info("System check: Arch={}, MaxMemory={}MB", osArch, maxMemory);
 
-            // Считаем ПК слабым, если выделено меньше 2 ГБ (2048 МБ) памяти или система 32-битная
+            // Consider PC low-end if allocated memory is under 2GB (2048 MB) or system is 32-bit
             isLowEndPC = maxMemory < 2048 || (osArch.contains("x86") && !osArch.contains("64"));
 
             if (isLowEndPC) {
-                LOGGER.warn("⚠️ Low-end PC detected (Low Memory or 32-bit)! Heavy effects disabled.");
+                LOGGER.warn("Low-end PC detected (Low Memory or 32-bit)! Heavy effects disabled.");
             } else {
-                LOGGER.info("✅ System check passed. Features enabled.");
+                LOGGER.info("System check passed. Features enabled.");
             }
         } catch (Exception e) {
             LOGGER.error("Failed to detect system capabilities, assuming low-end PC", e);
