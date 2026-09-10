@@ -5,43 +5,46 @@ import rockstar.client.module.Module;
 import rockstar.client.module.ModuleCategory;
 import rockstar.client.module.ModuleInfo;
 import rockstar.client.util.ClientMessages;
-
-import java.util.UUID;
+import rockstar.modules.other.spoof.SpoofManager;
 
 @ModuleInfo(
-    name = "Name Spoofer",
+    name = "[SHIELD] Name Spoofer",
     category = ModuleCategory.OTHER
 )
 public class NameSpooferModule extends Module {
     
-    public static volatile boolean spoofActive = false;
-    public static volatile String spoofedName = "";
-    public static volatile UUID spoofedUUID = null;
-
     public NameSpooferModule() {
-        // Simple module placeholder
-    }
-    
-    public static boolean isSpoofActive() {
-        return spoofActive;
-    }
-
-    public static String getSpoofedName() {
-        return spoofedName;
-    }
-
-    public static UUID getSpoofedUUID() {
-        return spoofedUUID;
+        super();
     }
     
     @Override
     public void onEnable() {
-        ClientMessages.internalMethod01809(Text.literal("§aName Spoofer enabled"));
+        if (SpoofManager.isProcessing || SpoofManager.isSpoofing) {
+            ClientMessages.internalMethod01809(Text.literal("§cSpoof is already active or processing!"));
+            toggle();
+            return;
+        }
+        
+        String newName = "SpoofedUser_" + System.currentTimeMillis() % 10000;
+        SpoofManager.startSpoofProcess(newName);
+        ClientMessages.internalMethod01809(Text.literal("§aStarting spoof process for: §f" + newName));
+        
+        // Note: Actual progress bar UI would be rendered in a custom Screen. 
+        // For module toggle, we simulate the background process.
+        new Thread(() -> {
+            while (SpoofManager.isProcessing) {
+                SpoofManager.updateProgress();
+                try { Thread.sleep(100); } catch (InterruptedException e) {}
+            }
+            if (SpoofManager.isSpoofing) {
+                mc.execute(() -> ClientMessages.internalMethod01809(Text.literal("§a[SHIELD] Spoof successfully applied!")));
+            }
+        }).start();
     }
     
     @Override
     public void onDisable() {
-        spoofActive = false;
-        ClientMessages.internalMethod01809(Text.literal("§cName Spoofer disabled"));
+        SpoofManager.reset();
+        ClientMessages.internalMethod01809(Text.literal("§c[SHIELD] Spoof disabled and reset."));
     }
 }
