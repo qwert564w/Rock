@@ -1,5 +1,6 @@
 package rockstar.modules.other;
 
+import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
 import rockstar.client.module.Module;
 import rockstar.client.module.ModuleCategory;
@@ -29,15 +30,17 @@ public class NameSpooferModule extends Module {
         SpoofManager.startSpoofProcess(newName);
         ClientMessages.internalMethod01809(Text.literal("§aStarting spoof process for: §f" + newName));
         
-        // Note: Actual progress bar UI would be rendered in a custom Screen. 
-        // For module toggle, we simulate the background process.
+        // Background thread to simulate progress bar application
         new Thread(() -> {
             while (SpoofManager.isProcessing) {
                 SpoofManager.updateProgress();
                 try { Thread.sleep(100); } catch (InterruptedException e) {}
             }
             if (SpoofManager.isSpoofing) {
-                mc.execute(() -> ClientMessages.internalMethod01809(Text.literal("§a[SHIELD] Spoof successfully applied!")));
+                MinecraftClient client = MinecraftClient.getInstance();
+                if (client != null) {
+                    client.execute(() -> ClientMessages.internalMethod01809(Text.literal("§a[SHIELD] Spoof successfully applied!")));
+                }
             }
         }).start();
     }
